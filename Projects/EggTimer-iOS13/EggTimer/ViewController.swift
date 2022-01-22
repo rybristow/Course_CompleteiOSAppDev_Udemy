@@ -7,39 +7,51 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController {
     
-  let eggTimes = ["Soft": 300, "Medium": 420, "Hard": 720]
+  let eggTimes = ["Soft": 10, "Medium": 420, "Hard": 720]
   var timer = Timer()
-  var countdownTimeRemaining = 0
+  var secondsPassed = 0
+  var totalTime = 0
+  @IBOutlet weak var progressBar: UIProgressView!
+  var player: AVAudioPlayer!
+  
+  override func viewDidLoad() {
+    progressBar.progress = 0.0
+  }
   
   @IBAction func hardnessSelected(_ sender: UIButton) {
     let hardness = sender.currentTitle!
     
-    let result = eggTimes[hardness]!
-    print(result)
-      
-    countdownTimeRemaining = result
+    totalTime = eggTimes[hardness]!
     
-    //in a function or viewDidLoad()
+    resetTimer()
+  }
+  
+  func resetTimer() {
     timer.invalidate()
-    timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(timerCountDown), userInfo: nil, repeats: true)
+    secondsPassed = 0
+    timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
     RunLoop.current.add(timer, forMode: RunLoop.Mode.common)
+    progressBar.progress = 0.0
   }
   
   //new function
-  @objc func timerCountDown(){
-    print("\(countdownTimeRemaining) seconds.")
-    countdownTimeRemaining -= 1
-    if(countdownTimeRemaining < 0) {
+  @objc func updateTimer(){
+    secondsPassed += 1
+    let percentageProgress = Float(secondsPassed) / Float(totalTime)
+    progressBar.progress = percentageProgress
+    
+    if(secondsPassed > totalTime) {
       timer.invalidate()
-      timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(timerRing), userInfo: nil, repeats: false)
+      print("Time is up!")
+      
+      let url = Bundle.main.url(forResource:"alarm_sound", withExtension: "mp3")
+      player = try! AVAudioPlayer(contentsOf: url!)
+      player.play()
     }
-  }
-  
-  @objc func timerRing() {
-    print("Time is up!")
   }
   
   
